@@ -136,6 +136,24 @@ Default is 512×512 (fast preview). Dimensions have to be multiples of 32. Sugge
 | Tall (1:2)        | 352×704        | 704×1408       |
 
 
+### Top-down terrain and heightmaps
+
+Use the guided terrain workflow instead of trying to force camera geometry through a free-form prompt:
+
+```bash
+./scripts/terrain.sh \
+  --prompt "a volcanic island with radial ridges and a central crater" \
+  --mode heightmap \
+  --size 1024x1024 \
+  --steps 8 \
+  --seed 42 \
+  --open
+```
+
+Choose `--mode texture` for a color terrain reference. A texture is not a heightmap. Heightmap mode expands the description into an orthographic DEM prompt and checks grayscale range after generation. Camera angle and elevation meaning still require visual review.
+
+See [Generate top-down terrain](docs/top-down-terrain.md) for the review checklist and failure policy.
+
 ## Folder structure after setup
 
 ```

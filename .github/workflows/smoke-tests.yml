@@ -37,27 +37,30 @@ jobs:
         if: steps.cache-model.outputs.cache-hit != 'true'
         run: ./scripts/download_model.sh --model ternary-mlx
 
-      - name: Generate a small image (smoke)
+      - name: Generate a top-down heightmap candidate
         run: |
-          ./scripts/generate.sh \
-            -p "a small red square" \
-            --size 256x256 \
-            --steps 4 --seed 42
-          ls -la outputs/ternary-mlx/
-          test "$(ls outputs/ternary-mlx/*.png 2>/dev/null | wc -l)" -ge 1
-          test "$(stat -f%z outputs/ternary-mlx/*.png)" -gt 1024
+          ./scripts/terrain.sh \
+            --prompt "a volcanic island with radial ridges and a central crater" \
+            --mode heightmap \
+            --size 512x512 \
+            --steps 8 \
+            --seed 42 \
+            --skip-check \
+            --output outputs/terrain/heightmap/volcanic-island-seed42.png
+          test "$(stat -f%z outputs/terrain/heightmap/volcanic-island-seed42.png)" -gt 1024
 
-      - name: Check generated image quality (not all-black / not constant noise)
+      - name: Check generated image integrity
         run: |
-          PNG=$(ls outputs/ternary-mlx/*.png | head -1)
+          PNG=outputs/terrain/heightmap/volcanic-island-seed42.png
           .venv/bin/python scripts/check_image.py "$PNG"
+          .venv/bin/python scripts/check_heightmap.py "$PNG"
 
       - name: Upload generated image (always, for visual inspection)
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: macos-generated-image
-          path: outputs/ternary-mlx/*.png
+          path: outputs/terrain/heightmap/*.png
 
       - name: Serve smoke test
         run: |
