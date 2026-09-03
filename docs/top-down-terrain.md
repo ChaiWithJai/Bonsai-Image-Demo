@@ -47,13 +47,21 @@ The numeric check does not prove camera angle or physical elevation. Before usin
 
 Reject the image when any point fails. Try another seed before changing the contract. If several seeds fail in the same way, record the outputs and treat the behavior as a model limitation rather than a prompt-writing failure.
 
+## What we verified
+
+The ternary MLX model can follow the absolute top-down composition. In a fixed-seed volcanic-island test, it produced a centered nadir view with no horizon. Adding a black sea-level boundary also changed the frame from white to black.
+
+It did not produce dependable raw elevation data. The same test retained strong highlights and shadows after the prompt asked for raw raster values and no shaded relief. Those pixels describe lighting, not height. The current FLUX.2 Klein pipeline does not support a negative-prompt channel, so adding more exclusion words is not a reliable fix.
+
+Use the output as a top-down terrain reference unless it passes the visual checklist. For production heightmaps, use a terrain or elevation tool that computes height values instead of inferring them from an image model.
+
 ## Check an existing image
 
 ```bash
 .venv/bin/python scripts/check_heightmap.py outputs/terrain/heightmap/example.png
 ```
 
-Use `--json` for automation. A pass means only that the pixels have a usable grayscale range. It does not certify geometry.
+Use `--json` for automation. `numeric_pass` means only that the pixels have a usable grayscale range and boundary. `visual_review_required` is always true because the checker cannot prove projection or distinguish elevation from relief lighting.
 
 ## Current setup requirement
 

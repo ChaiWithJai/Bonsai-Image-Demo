@@ -21,6 +21,7 @@ class HeightmapReport:
     clipped_high_percent: float
     bright_border_percent: float
     numeric_pass: bool
+    visual_review_required: bool
     failures: tuple[str, ...]
 
 
@@ -70,8 +71,6 @@ def inspect_heightmap(path: Path) -> HeightmapReport:
         )
     if p95 - p05 < 80:
         failures.append(f"tonal span is {p95 - p05}; elevation separation is too narrow")
-    if clipped_low_percent > 35:
-        failures.append(f"{clipped_low_percent:.1f}% of pixels are crushed near black")
     if clipped_high_percent > 35:
         failures.append(f"{clipped_high_percent:.1f}% of pixels are clipped near white")
     if bright_border_percent > 35:
@@ -91,6 +90,7 @@ def inspect_heightmap(path: Path) -> HeightmapReport:
         clipped_high_percent=round(clipped_high_percent, 2),
         bright_border_percent=round(bright_border_percent, 2),
         numeric_pass=not failures,
+        visual_review_required=True,
         failures=tuple(failures),
     )
 

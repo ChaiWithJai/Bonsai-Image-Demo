@@ -96,13 +96,24 @@ class HeightmapCheckTests(unittest.TestCase):
         self.assertFalse(report.numeric_pass)
         self.assertTrue(any("color saturation" in failure for failure in report.failures))
 
-    def test_crushed_extremes_fail(self) -> None:
+    def test_clipped_highlights_fail(self) -> None:
         image = Image.new("L", (256, 256))
         image.putdata([0 if index % 2 else 255 for index in range(256 * 256)])
         report = inspect_heightmap(self.save_image(image))
         self.assertFalse(report.numeric_pass)
-        self.assertTrue(any("crushed" in failure for failure in report.failures))
         self.assertTrue(any("clipped" in failure for failure in report.failures))
+
+    def test_black_sea_level_area_is_allowed(self) -> None:
+        image = Image.new("L", (256, 256), 0)
+        land = Image.new("L", (176, 176))
+        land.putdata([20 + x * 220 // 175 for _y in range(176) for x in range(176)])
+        image.paste(land, (40, 40))
+
+        report = inspect_heightmap(self.save_image(image))
+
+        self.assertTrue(report.numeric_pass)
+        self.assertGreater(report.clipped_low_percent, 35)
+        self.assertTrue(report.visual_review_required)
 
     def test_white_frame_fails_even_when_interior_has_range(self) -> None:
         image = Image.new("L", (256, 256), 255)
