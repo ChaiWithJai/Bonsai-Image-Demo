@@ -9,11 +9,12 @@ TerrainMode = Literal["heightmap", "texture"]
 HEIGHTMAP_CONTRACT = (
     "A single-channel grayscale digital elevation model (DEM) of {description}. "
     "Absolute orthographic nadir projection, viewed vertically from exactly 90 degrees above. "
-    "The image is a flat square GIS elevation raster with the full terrain footprint visible. "
+    "Raw 2D raster data, not a 3D render, with the full terrain footprint visible. "
     "Pixel brightness encodes elevation only: pure black is the lowest ground and pure white is "
     "the highest ground, with smooth continuous gray elevation gradients between them. "
-    "Uniform shadowless illumination, neutral grayscale surface, clean map edges, high relief "
-    "separation, scientific terrain height field."
+    "Sea level and the outer map boundary are black. No lighting, shadows, highlights, ambient "
+    "occlusion, texture, bevel, embossing, or shaded relief. Clean square map edges, strong "
+    "elevation separation, scientific terrain height field."
 )
 
 TEXTURE_CONTRACT = (

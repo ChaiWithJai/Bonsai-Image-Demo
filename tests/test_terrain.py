@@ -24,6 +24,9 @@ class TerrainPromptTests(unittest.TestCase):
         self.assertIn("brightness encodes elevation only", prompt)
         self.assertIn("black is the lowest", prompt)
         self.assertIn("white is the highest", prompt)
+        self.assertIn("not a 3D render", prompt)
+        self.assertIn("outer map boundary are black", prompt)
+        self.assertIn("No lighting, shadows, highlights", prompt)
         self.assertIn("volcanic island", prompt)
 
     def test_texture_mode_does_not_claim_to_be_a_heightmap(self) -> None:
@@ -100,6 +103,18 @@ class HeightmapCheckTests(unittest.TestCase):
         self.assertFalse(report.numeric_pass)
         self.assertTrue(any("crushed" in failure for failure in report.failures))
         self.assertTrue(any("clipped" in failure for failure in report.failures))
+
+    def test_white_frame_fails_even_when_interior_has_range(self) -> None:
+        image = Image.new("L", (256, 256), 255)
+        interior = Image.new("L", (224, 224))
+        interior.putdata([x * 255 // 223 for _y in range(224) for x in range(224)])
+        image.paste(interior, (16, 16))
+
+        report = inspect_heightmap(self.save_image(image))
+
+        self.assertFalse(report.numeric_pass)
+        self.assertGreater(report.bright_border_percent, 90)
+        self.assertTrue(any("map border" in failure for failure in report.failures))
 
 
 if __name__ == "__main__":

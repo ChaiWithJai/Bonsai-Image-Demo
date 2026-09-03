@@ -42,7 +42,8 @@ The numeric check does not prove camera angle or physical elevation. Before usin
 3. Bright areas consistently mean high ground.
 4. Dark areas consistently mean low ground.
 5. Shading does not create false ridges or valleys.
-6. The terrain reaches the intended map boundary without a perspective frame.
+6. Sea level and the outer map boundary are black, not white or transparent.
+7. The terrain reaches the intended map boundary without a perspective frame.
 
 Reject the image when any point fails. Try another seed before changing the contract. If several seeds fail in the same way, record the outputs and treat the behavior as a model limitation rather than a prompt-writing failure.
 

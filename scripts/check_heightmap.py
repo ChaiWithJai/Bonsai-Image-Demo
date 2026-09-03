@@ -19,6 +19,7 @@ class HeightmapReport:
     tonal_span: int
     clipped_low_percent: float
     clipped_high_percent: float
+    bright_border_percent: float
     numeric_pass: bool
     failures: tuple[str, ...]
 
@@ -51,6 +52,16 @@ def inspect_heightmap(path: Path) -> HeightmapReport:
         saturation_percent = ImageStat.Stat(hsv).mean[1] / 255 * 100
         clipped_low_percent = sum(histogram[:6]) / pixels * 100
         clipped_high_percent = sum(histogram[250:]) / pixels * 100
+        border_width = max(1, min(width, height) // 64)
+        border_regions = (
+            gray.crop((0, 0, width, border_width)),
+            gray.crop((0, height - border_width, width, height)),
+            gray.crop((0, border_width, border_width, height - border_width)),
+            gray.crop((width - border_width, border_width, width, height - border_width)),
+        )
+        border_pixels = sum(region.width * region.height for region in border_regions)
+        bright_border_pixels = sum(sum(region.histogram()[250:]) for region in border_regions)
+        bright_border_percent = bright_border_pixels / border_pixels * 100
 
     failures: list[str] = []
     if saturation_percent > 8:
@@ -63,6 +74,11 @@ def inspect_heightmap(path: Path) -> HeightmapReport:
         failures.append(f"{clipped_low_percent:.1f}% of pixels are crushed near black")
     if clipped_high_percent > 35:
         failures.append(f"{clipped_high_percent:.1f}% of pixels are clipped near white")
+    if bright_border_percent > 35:
+        failures.append(
+            f"{bright_border_percent:.1f}% of the map border is near white; "
+            "the lowest elevation should frame the terrain"
+        )
 
     return HeightmapReport(
         width=width,
@@ -73,6 +89,7 @@ def inspect_heightmap(path: Path) -> HeightmapReport:
         tonal_span=p95 - p05,
         clipped_low_percent=round(clipped_low_percent, 2),
         clipped_high_percent=round(clipped_high_percent, 2),
+        bright_border_percent=round(bright_border_percent, 2),
         numeric_pass=not failures,
         failures=tuple(failures),
     )
@@ -100,7 +117,8 @@ def main() -> None:
             f"heightmap: {report.width}x{report.height}  "
             f"saturation={report.saturation_percent:.1f}%  "
             f"range=p05:{report.p05}-p95:{report.p95}  "
-            f"clipping={report.clipped_low_percent:.1f}%/{report.clipped_high_percent:.1f}%"
+            f"clipping={report.clipped_low_percent:.1f}%/{report.clipped_high_percent:.1f}%  "
+            f"bright-border={report.bright_border_percent:.1f}%"
         )
         for failure in report.failures:
             print(f"FAIL: {failure}", file=sys.stderr)
